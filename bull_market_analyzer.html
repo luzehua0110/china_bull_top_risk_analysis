@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国股市牛市顶部风险分析工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .risk-factor {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .score-display {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .risk-score {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .risk-level {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .extreme-high {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .high {
+            background-color: #f39c12;
+            color: white;
+        }
+        .medium {
+            background-color: #f1c40f;
+            color: white;
+        }
+        .low {
+            background-color: #27ae60;
+            color: white;
+        }
+        .recommendation {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .recommendation h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        .recommendation ul {
+            padding-left: 20px;
+        }
+        .recommendation li {
+            margin-bottom: 8px;
+        }
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .historical-comparison {
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .highlight {
+            background-color: #fffacd;
+            padding: 10px;
+            border-left: 4px solid #f1c40f;
+            margin: 15px 0;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .legend-item {
+            margin: 0 15px;
+            display: flex;
+            align-items: center;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+        .submit-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+        .metric-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>中国股市牛市顶部风险分析工具</h1>
+        
+        <div class="highlight">
+            <p>本工具通过综合分析多种风险指标，帮助您判断当前市场是否可能处于牛市顶部区域。请根据您对当前市场的观察，为以下指标评分。</p>
+        </div>
+        
+        <div id="risk-factors">
+            <h2>请为以下风险因素评分（1-10分）</h2>
+            
+            <div class="risk-factor">
+                <label for="price-rise">1. 指数涨幅（近6个月）<span class="score-display" id="price-rise-value">5</span>/10</label>
+                <input type="range" id="price-rise" min="1" max="10" value="5" oninput="updateScore('price-rise', this.value)">
+                <div class="metric-info">1分表示大幅下跌，10分表示大幅上涨（如超过50%）</div>
+            </div>
+            
+            <div class="risk-factor">
+                <label for="pe-ratio">2. 市盈率水平 <span class="score-display" id="pe-ratio-value">5</span>/10</label>
+                <input type="range" id="pe-ratio" min="1" max="10" value="5" oninput="updateScore('pe-ratio', this.value)">
+                <div class="metric-info">1分表示估值极低，10分表示估值极高（如超过历史90%分位）</div>
+            </div>
+            
+            <div class="risk-factor">
+                <label for="pb-ratio">3. 市净率水平 <span class="score-display" id="pb-ratio-value">5</span>/10</label>
+                <input type="range" id="pb-ratio" min="1" max="10" value="5" oninput="updateScore('pb-ratio', this.value)">
+                <div class="metric-info">1分表示资产价值严重低估，10分表示资产价值严重高估</div>
+            </div>
+            
+            <div class="risk-factor">
+                <label for="financing-growth">4. 融资余额增速 <span class="score-display" id="financing-growth-value">5</span>/10</label>
+                <input type="range" id="financing-growth" min="1" max="10" value="5" oninput="updateScore('financing-growth', this.value)">
+                <div class="metric-info">1分表示融资余额大幅下降，10分表示融资余额快速增长（高杠杆）</div>
+            </div>
+            
+            <div class="risk-factor">
+                <label for="new-investors">5. 新增投资者数量增长 <span class="score-display" id="new-investors-value">5</span>/10</label>
+                <input type="range" id="new-investors" min="1" max="10" value="5" oninput="updateScore('new-investors', this.value)">
+                <div class="metric-info">1分表示新增投资者大幅减少，10分表示新增投资者爆发式增长（全民炒股）</div>
+            </div>
+            
+            <div class="risk-factor">
+                <label for="media-hype">6. 媒体报道热度 <span class="score-display" id="media-hype-value">5</span>/10</label>
+                <input type="range" id="media-hype" min="1" max="10" value="5" oninput="updateScore('media-hype', this.value)">
+                <div class="metric-info">1分表示媒体很少报道股市，10分表示媒体铺天盖地报道股市上涨</div>
+            </div>
+            
+            <div class="risk-factor">
+                <label for="institution-position">7. 机构持仓变化 <span class="score-display" id="institution-position-value">5</span>/10</label>
+                <input type="range" id="institution-position" min="1" max="10" value="5" oninput="updateScore('institution-position', this.value)">
+                <div class="metric-info">1分表示机构大幅增持，10分表示机构大规模减持</div>
+            </div>
+            
+            <div class="risk-factor">
+                <label for="technical-overbought">8. 技术指标超买程度 <span class="score-display" id="technical-overbought-value">5</span>/10</label>
+                <input type="range" id="technical-overbought" min="1" max="10" value="5" oninput="updateScore('technical-overbought', this.value)">
+                <div class="metric-info">1分表示严重超卖，10分表示严重超买（如RSI超过85）</div>
+            </div>
+        </div>
+        
+        <button class="submit-btn" onclick="calculateRisk()">计算风险评估</button>
+        
+        <div class="result" id="result" style="display: none;">
+            <h2>风险评估结果</h2>
+            <div class="risk-score" id="risk-score">0</div>
+            <div class="risk-level" id="risk-level"></div>
+            
+            <div class="recommendation">
+                <h3>操作建议</h3>
+                <ul id="recommendations">
+                </ul>
+            </div>
+            
+            <p class="warning">⚠️ 风险提示：本工具仅供参考，不构成投资建议。市场有风险，投资需谨慎。</p>
+        </div>
+        
+        <div class="historical-comparison">
+            <h2>历史牛市顶部特征对比</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>特征</th>
+                        <th>2007年牛市顶部</th>
+                        <th>2015年牛市顶部</th>
+                        <th>2018年初顶部</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>上涨幅度</td>
+                        <td>500%+</td>
+                        <td>150%+</td>
+                        <td>50%+</td>
+                    </tr>
+                    <tr>
+                        <td>市盈率峰值</td>
+                        <td>70+</td>
+                        <td>50+</td>
+                        <td>18-20</td>
+                    </tr>
+                    <tr>
+                        <td>市净率峰值</td>
+                        <td>7+</td>
+                        <td>5+</td>
+                        <td>2+</td>
+                    </tr>
+                    <tr>
+                        <td>市场情绪</td>
+                        <td>全民炒股，极度乐观</td>
+                        <td>杠杆牛，风险意识弱</td>
+                        <td>政策收紧预期</td>
+                    </tr>
+                    <tr>
+                        <td>融资余额</td>
+                        <td>较低（当时杠杆工具少）</td>
+                        <td>超过2万亿元</td>
+                        <td>1.5万亿元左右</td>
+                    </tr>
+                    <tr>
+                        <td>政策环境</td>
+                        <td>加息、提准</td>
+                        <td>去杠杆、清理配资</td>
+                        <td>金融去杠杆、贸易摩擦</td>
+                    </tr>
+                    <tr>
+                        <td>技术特征</td>
+                        <td>量价背离、指标超买</td>
+                        <td>快速拉升、高位震荡</td>
+                        <td>形成M头形态</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h2>关键判断指标说明</h2>
+            
+            <h3>技术指标</h3>
+            <ul>
+                <li><strong>RSI指标</strong>：当RSI超过70表示超买，超过80表示严重超买，是顶部风险信号</li>
+                <li><strong>MACD指标</strong>：MACD线从上向下穿过信号线（死叉）是卖出信号</li>
+                <li><strong>移动平均线</strong>：短期均线下穿长期均线（死亡交叉）表明趋势可能反转</li>
+                <li><strong>量价关系</strong>：价格创新高但成交量未同步放大，形成量价背离</li>
+            </ul>
+            
+            <h3>估值指标</h3>
+            <ul>
+                <li><strong>市盈率(PE)</strong>：处于历史90%以上分位数时风险显著增加</li>
+                <li><strong>市净率(PB)</strong>：超过历史峰值的80%时需要警惕</li>
+                <li><strong>股债收益率比</strong>：股票收益率低于债券收益率表明风险溢价不足</li>
+                <li><strong>总市值/GDP</strong>：超过100%通常被认为市场整体高估</li>
+            </ul>
+            
+            <h3>市场情绪指标</h3>
+            <ul>
+                <li><strong>融资融券余额</strong>：快速增长表明杠杆风险积累</li>
+                <li><strong>新增投资者数量</strong>：爆发式增长通常是顶部特征</li>
+                <li><strong>机构持仓变化</strong>：产业资本大规模减持是重要信号</li>
+                <li><strong>媒体关注度</strong>：全民讨论股市往往是见顶前兆</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // 更新评分显示
+        function updateScore(id, value) {
+            document.getElementById(id + '-value').textContent = value;
+        }
+        
+        // 计算风险评分
+        function calculateRisk() {
+            // 获取各项评分
+            const scores = {
+                'price-rise': parseInt(document.getElementById('price-rise').value),
+                'pe-ratio': parseInt(document.getElementById('pe-ratio').value),
+                'pb-ratio': parseInt(document.getElementById('pb-ratio').value),
+                'financing-growth': parseInt(document.getElementById('financing-growth').value),
+                'new-investors': parseInt(document.getElementById('new-investors').value),
+                'media-hype': parseInt(document.getElementById('media-hype').value),
+                'institution-position': parseInt(document.getElementById('institution-position').value),
+                'technical-overbought': parseInt(document.getElementById('technical-overbought').value)
+            };
+            
+            // 权重设置
+            const weights = {
+                'price-rise': 0.15,
+                'pe-ratio': 0.15,
+                'pb-ratio': 0.10,
+                'financing-growth': 0.15,
+                'new-investors': 0.10,
+                'media-hype': 0.10,
+                'institution-position': 0.10,
+                'technical-overbought': 0.15
+            };
+            
+            // 计算加权总分
+            let totalScore = 0;
+            for (const [key, score] of Object.entries(scores)) {
+                totalScore += score * weights[key] * 10; // 转换为0-100分制
+            }
+            
+            totalScore = Math.round(totalScore);
+            
+            // 设置结果显示
+            document.getElementById('risk-score').textContent = totalScore + '/100';
+            
+            // 设置风险等级
+            const riskLevelElement = document.getElementById('risk-level');
+            let riskLevel = '';
+            let riskLevelClass = '';
+            let recommendations = [];
+            
+            if (totalScore >= 80) {
+                riskLevel = '极高风险';
+                riskLevelClass = 'extreme-high';
+                recommendations = [
+                    '🔴 立即大幅减仓，控制仓位在20%以下',
+                    '🔴 全部卖出高估值、概念炒作类股票',
+                    '🔴 避免任何形式的追高和杠杆操作',
+                    '🔴 可考虑小仓位做空对冲风险',
+                    '🔴 密切关注政策动向和市场情绪变化'
+                ];
+            } else if (totalScore >= 60) {
+                riskLevel = '高风险';
+                riskLevelClass = 'high';
+                recommendations = [
+                    '🟠 大幅减仓至30-40%仓位',
+                    '🟠 减持高估值板块，保留低估值防御性板块',
+                    '🟠 设置严格止损，防范大幅回调风险',
+                    '🟠 耐心等待更好的入场机会',
+                    '🟠 关注资金流向和机构动向'
+                ];
+            } else if (totalScore >= 40) {
+                riskLevel = '中等风险';
+                riskLevelClass = 'medium';
+                recommendations = [
+                    '🟡 适度减仓至50-60%仓位',
+                    '🟡 调整持仓结构，增加防御性资产比例',
+                    '🟡 密切关注市场变化和政策动向',
+                    '🟡 逢高减持，逢低少量吸纳优质股票',
+                    '🟡 控制单个股票仓位，分散投资'
+                ];
+            } else {
+                riskLevel = '低风险';
+                riskLevelClass = 'low';
+                recommendations = [
+                    '🟢 可保持较高仓位，但不建议满仓',
+                    '🟢 重点关注业绩增长确定性强的优质公司',
+                    '🟢 定期回顾风险指标变化',
+                    '🟢 分批操作，避免一次性大额交易',
+                    '🟢 适当配置不同行业，分散风险'
+                ];
+            }
+            
+            // 应用风险等级样式
+            riskLevelElement.textContent = riskLevel;
+            riskLevelElement.className = 'risk-level ' + riskLevelClass;
+            
+            // 设置建议列表
+            const recommendationsElement = document.getElementById('recommendations');
+            recommendationsElement.innerHTML = '';
+            recommendations.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                recommendationsElement.appendChild(li);
+            });
+            
+            // 显示结果
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
